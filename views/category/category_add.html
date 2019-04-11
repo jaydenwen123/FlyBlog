@@ -1,0 +1,65 @@
+{{template  "common/header.html" .}}
+<div class="container-wrap">
+    <div class="container">
+        <div class="contar-wrap">
+            <div class="item">
+                <form class="layui-form" method="post" action="">
+                    <div class="item-box">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">栏目标题</label>
+                            <div class="layui-input-block">
+                                <input type="hidden" name="catid" value="{{.category.Id}}" >
+                                <input type="text" name="title" required lay-verify="required" placeholder="请输入栏目标题"
+                                       autocomplete="off" class="layui-input" value="{{.category.Title}}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">是否公开</label>
+                            <div class="layui-input-block">
+                                <input type="checkbox" name="visible" lay-skin="switch" {{if .category.Visible}} checked{{end}}>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">栏目描述</label>
+                            <div class="layui-input-block">
+                                <textarea name="description" placeholder="请输入栏目描述内容" class="layui-textarea" rows="8"  >{{.category.Description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="formDemo">保存</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                <button onclick="return showCategory();" class="layui-btn pull-right">查看已有栏目</button>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <p style="color: red">{{ .addMsg}}</p>
+                                <p style="color: red">{{ .updateMsg}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "common/footer.html" .}}
+<script>
+    //Demo
+    layui.use('form', function () {
+        var form = layui.form;
+
+        //监听提交
+        form.on('submit(formDemo)', function (data) {
+            console.log(JSON.stringify(data.field))
+            // layer.msg(JSON.stringify(data.field))
+            // return false;
+        });
+    });
+    function showCategory() {
+        //如果不设置false的话，会先提交表单，然后导致无法跳转
+        window.location.href="/category/show/"
+        return false
+    }
+</script>

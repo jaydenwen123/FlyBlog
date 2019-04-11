@@ -1,0 +1,103 @@
+{{template  "common/header.html" .}}
+<div class="container-wrap">
+    <div class="container">
+        <div class="contar-wrap">
+            <div class="item">
+                <form id="article" class="layui-form layui-form-pane" method="post" action="">
+                    <div class="item-box">
+                        <div class="layui-form-item">
+                            <input type="hidden" name="artId" value="{{.article.Id}}" >
+                            <label class="layui-form-label">文章标题</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="title" required lay-verify="required" value="{{.article.Title}}" placeholder="请输入文章标题"
+                                       autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">文章栏目</label>
+                            <div class="layui-input-block">
+                                <select name="category" lay-verify="required">
+                                    <option value=""></option>
+                                    {{range .categories}}
+                                        <option  value="{{.Id}}" >{{.Title}}</option>
+
+                                        {{/*{{if not .add}}*/}}
+                                            {{/*{{if eq .Id  .article.Category.Id }} selected {{end}}*/}}
+                                        {{/*{{end}}*/}}
+                                    {{end}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            {{/*<div class="layui-input-block">*/}}
+                                <textarea id="content" name="content" placeholder="请输入文章内容" class="layui-textarea">{{.article.Content}}</textarea>
+                            {{/*</div>*/}}
+                        </div>
+                        <div class="layui-form-item">
+                            {{/*<div class="layui-input-block">*/}}
+                                <button class="layui-btn"  onclick="postSubmit(this);" lay-submit lay-filter="formDemo">保存</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                 <button onclick="showArticle();" class="layui-btn pull-right">查看已有文章</button>
+                            {{/*</div/>*/}}
+                        </div>
+                        <div class="layui-form-item">
+                            {{/*<div class="layui-input-block">*/}}
+                                <p style="color: red">{{ .addMsg}}</p>
+                            {{/*</div>*/}}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "common/footer.html" .}}
+<script>
+    //Demo
+    var $,layer;
+    layui.use(["layer",'form',"jquery"], function () {
+        var form = layui.form;
+        layer=layui.layer
+        $=layui.jquery;
+        监听提交
+        form.on('submit(formDemo)', function (data) {
+            console.log(JSON.stringify(data.field))
+            layer.msg(JSON.stringify(data.field))
+            return false;
+        });
+
+    });
+
+    layui.use('layedit', function(){
+        var layedit = layui.layedit;
+        layedit.build('content'); //建立编辑器
+    });
+
+    // function postSubmit(obj){
+    //     alert(layer)
+    //     alert($)
+    //     layer.alert(obj)
+    //     $.ajax({
+    //        url:"/article",
+    //        type:"post",
+    //         data:$("#article").serialize(),
+    //         success: function (data) {
+    //            alert("ssssss")
+    //             setTimeout(function () {
+    //                 layer.alert("success"+data)
+    //                 window.location.href=data["action"]
+    //             },3000)
+    //         },
+    //         error:function (data) {
+    //             console.log(data)
+    //         }
+    //     });
+    //     return false;
+    //     // layer.alert("success"+data)
+    //
+    // }
+
+    function showArticle() {
+        window.location.href="/article/show"
+    }
+</script>

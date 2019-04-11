@@ -1,0 +1,83 @@
+{{template "common/header.html" .}}
+<div class="container-wrap">
+    <div class="container">
+        <div class="contar-wrap">
+            <h4 class="item-title">
+                <p><i class="layui-icon layui-icon-speaker"></i>公告：<span>博客栏目列表</span></p>
+            </h4>
+            {{if .all}}
+                {{range .categorys}}
+                    {{template "category/category_content.html" .}}
+                {{end}}
+                <!--添加分页功能-->
+                <div class="item-box">
+                    <div class="item-btn">
+                        <button  onclick="getPage(this);" name="previous" class="layui-btn layui-btn-normal {{if le .pageNow 1}}layui-btn-disabled{{end}}" {{if le .pageNow 1}}disabled{{end}} >上一页</button>
+                        <button onclick="getPage(this);" name="next" class="layui-btn layui-btn-normal {{if ge .pageNow .pageMax }}layui-btn-disabled{{end}}" {{if ge .pageNow .pageMax }}disabled{{end}}>下一页</button>
+                    </div>
+                </div>
+            {{else}}
+                {{template "category/category_content.html" .category}}
+            {{end}}
+        </div>
+
+    </div>
+</div>
+{{ template "common/footer.html"}}
+<script>
+    var layer,$;
+    layui.use(['layer', "jquery"], function () { //独立版的layer无需执行这一句
+        layer = layui.layer; //独立版的layer无需执行这一句
+        $= layui.jquery;
+        // sync=layui.sync;
+        //总页数大于页码总数
+    });
+
+    function getData(obj) {
+        layer.alert("change"+obj)
+    }
+
+    function showDeleteConfirm(obj) {
+        // console.log(obj.getAttribute("href"))
+        layer.confirm('确定要删除该栏目吗?',
+            {icon: 3, title: '提示'},
+            function (index) {
+                //do something
+                deleteCategory(obj);
+                layer.close(index);
+            }, function (index) {
+                layer.close(index)
+            }
+        );
+        //eg2
+    }
+    function deleteCategory(obj) {
+        // window.location.href=obj.getAttribute("link")
+        $.get(
+            obj.getAttribute("link")
+        ).success(function (data) {
+            console.log(data)
+            layer.alert(data["msg"])
+            setTimeout(function () {
+                window.location.href=data["action"]
+            },3000)
+        }).error(function (data) {
+            layer.alert(data["msg"])
+        })
+    }
+
+    function getPage(obj) {
+        // layer.alert()
+        var select=obj.getAttribute("name")
+        var pageNow={{.pageNow}}
+        if (select==="previous"){
+            pageNow--
+        }else if(select==="next"){
+            pageNow++
+        }
+        window.location.href="/category/show/?pageSize={{.pageSize}}&pageNow="+pageNow
+
+    }
+
+
+</script>

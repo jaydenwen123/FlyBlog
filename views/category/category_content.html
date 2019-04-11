@@ -1,0 +1,29 @@
+<div class="item">
+    <div class="item-box  layer-photos-demo1 layer-photos-demo">
+        <h3><a href="/detail">{{.Title}}</a></h3>
+        <hr/>
+        <h5>
+            创建时间：<span>{{date .PublishTime "Y-m-d H:i:s"}}</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            更新时间：<span>{{date .UpdateTime "Y-m-d H:i:s"}}</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            访问权限：
+            <span style="color: {{if .Visible}} #1E9FFF;{{else}} #FF5722;{{end}}">
+                    {{if .Visible}}
+                        所有人可见
+                    {{else}}
+                        仅自己可见
+                    {{end}}
+                </span>
+        </h5>
+        <hr/>
+        <p>
+            {{.Description}}
+        </p>
+        {{/*<img src="/static/images/item.png" alt="">*/}}
+    </div>
+    <div class="comment count">
+        <a href="/category/update/{{.Id}}">编辑</a>
+        <a href="javascript:void(0);" onclick="showDeleteConfirm(this);" link="/category/del/{{.Id}}">删除</a>
+    </div>
+</div>
