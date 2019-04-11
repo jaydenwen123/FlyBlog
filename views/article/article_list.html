@@ -7,43 +7,69 @@
             </h4>
             {{if .all}}
                 {{range .articles}}
-                    {{template "article/article_content.html" .}}
+                    {{template "article/article_content.html"  .}}
                 {{end}}
                 <!--添加分页功能-->
-                {{/*<div class="item-box">*/}}
-                    {{/*<div class="item-btn">*/}}
-                        {{/*<button  onclick="getPage(this);" name="previous" class="layui-btn layui-btn-normal {{if le .pageNow 1}}layui-btn-disabled{{end}}" {{if le .pageNow 1}}disabled{{end}} >上一页</button>*/}}
-                        {{/*<button onclick="getPage(this);" name="next" class="layui-btn layui-btn-normal {{if ge .pageNow .pageMax }}layui-btn-disabled{{end}}" {{if ge .pageNow .pageMax }}disabled{{end}}>下一页</button>*/}}
-                    {{/*</div>*/}}
-                {{/*</div>*/}}
+                <div class="item-box">
+                    <div class="item-btn">
+                        <button  onclick="getPage(this);" name="previous" class="layui-btn layui-btn-normal {{if le .pageNow 1}}layui-btn-disabled{{end}}" {{if le .pageNow 1}}disabled{{end}} >上一页</button>
+                        <button onclick="getPage(this);" name="next" class="layui-btn layui-btn-normal {{if ge .pageNow .pageMax }}layui-btn-disabled{{end}}" {{if ge .pageNow .pageMax }}disabled{{end}}>下一页</button>
+                    </div>
+                </div>
             {{else}}
-                {{template "article/article_content.html" .article}}
+                {{template "article/article_content.html" .article .user}}
             {{end}}
         </div>
-
     </div>
 </div>
 {{ template "common/footer.html"}}
 <script>
     var layer,$;
-    layui.use(['layer', "jquery"], function () { //独立版的layer无需执行这一句
+    layui.use(['layer', "jquery","util"], function () { //独立版的layer无需执行这一句
         layer = layui.layer; //独立版的layer无需执行这一句
         $= layui.jquery;
-        // sync=layui.sync;
-        //总页数大于页码总数
+        var util=layui.util
+        //执行
+        util.fixbar({
+        {{if not .all}}
+            bar1: "&#xe642;",//编辑
+            bar2:"&#xe640;",//删除
+        {{end}}
+            top:true
+            ,click: function(type){
+                console.log(type);
+                if(type === 'bar1'){
+                    layer.confirm('是否返回编辑页面编辑当前文章?',{icon: 3, title: '提示'},function (index) {
+                        window.location.href="/article/update/{{.article.Id}}"
+                        layer.close(index)
+                    },function (index) {
+                        layer.close(index)
+                    })
+                }
+                if(type === 'bar2'){
+                    layer.confirm('是否删除当前文章?',{icon: 3, title: '提示'},function (index) {
+                        link="/article/del/{{.article.Id}}"
+                        deleteArticle("",link)
+                        layer.close(index)
+                    },function (index) {
+                        layer.close(index)
+                    })
+                }
+            }
+        });
     });
 
     function getData(obj) {
         layer.alert("change"+obj)
     }
 
-    function showDeleteConfirm(obj) {
+    function showDeleteArticleConfirm(obj) {
         // console.log(obj.getAttribute("href"))
-        layer.confirm('确定要删除该栏目吗?',
+        layer.confirm('确定要删除该文章吗?',
             {icon: 3, title: '提示'},
             function (index) {
                 //do something
-                deleteCategory(obj);
+                deleteArticle(obj,"");
                 layer.close(index);
             }, function (index) {
                 layer.close(index)
@@ -51,16 +77,20 @@
         );
         //eg2
     }
-    function deleteCategory(obj) {
+    function deleteArticle(obj,link) {
         // window.location.href=obj.getAttribute("link")
+        if(link===""){
+            link=obj.getAttribute("link")
+        }
         $.get(
-            obj.getAttribute("link")
+            // obj.getAttribute("link")
+            link
         ).success(function (data) {
             console.log(data)
             layer.alert(data["msg"])
             setTimeout(function () {
                 window.location.href=data["action"]
-            },3000)
+            },1000)
         }).error(function (data) {
             layer.alert(data["msg"])
         })
@@ -75,9 +105,6 @@
         }else if(select==="next"){
             pageNow++
         }
-        window.location.href="/category/show/?pageSize={{.pageSize}}&pageNow="+pageNow
-
+        window.location.href="/article/show/?pageSize={{.pageSize}}&pageNow="+pageNow
     }
-
-
 </script>

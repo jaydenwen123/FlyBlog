@@ -55,9 +55,10 @@ func (this *LoginController) Login() {
 		this.Redirect("/", 302)
 		return
 	} else {
-		logs.Error("login failed")
+		//logs.Error("login failed")
 		//3.验证失败跳转404 or 500
-		this.Redirect("/404", 302)
+		this.Data["loginInfo"]="用户名或者密码不对，请重新检查后输入"
+		this.TplName="login.html"
 	}
 
 }

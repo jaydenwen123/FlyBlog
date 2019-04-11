@@ -14,7 +14,11 @@ type Category struct {
 	PublishTime time.Time  `orm:"auto_now_add;type(datetime)"`
 	UpdateTime  time.Time  `orm:"auto_now;type(datetime)"`
 	Articles    []*Article `orm:"reverse(many)"` // 设置一对多的反向关系
-	//Author	User	`orm:"rel(fk)"`
+	User	*User	`orm:"rel(fk)"`
+}
+
+func NewCategory(title string, description string, visible bool, user *User) *Category {
+	return &Category{Title: title, Description: description, Visible: visible, User: user}
 }
 
 func AddCategory(category *Category) error {
@@ -61,4 +65,12 @@ func GetCategorysByPage(pageSize, pageNow int) ([]*Category, error) {
 
 func GetCategoryCounts() (int64, error) {
 	return db.QueryTable("category").Count()
+}
+
+func GetCategoryWithArticles(catId int64) (*Category,[]*Article,error){
+	category :=Category{}
+	articles :=[] *Article{}
+	err := db.QueryTable("category").Filter("id", catId).RelatedSel().One(&category)
+	_,err=db.QueryTable("article").Filter("category_id",catId).RelatedSel().OrderBy("-publish_time").All(&articles)
+	return &category,articles,err
 }

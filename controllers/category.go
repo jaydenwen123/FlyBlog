@@ -28,7 +28,7 @@ func (this *CategoryController) AddCategory() {
 	if len(visible) > 0 && strings.Compare(visible, "on") == 0 {
 		isVisible = true
 	}
-	err := models.AddCategory(&models.Category{Title: title, Visible: isVisible, Description: description})
+	err := models.AddCategory(models.NewCategory(title,description,isVisible,&this.User))
 	//验证栏目信息,检查参数
 	if err != nil {
 		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "AddCategory", err.Error()})
@@ -143,7 +143,8 @@ func (this *CategoryController) EditCategory() {
 			Id:          cateInfo.Id,
 			Title:       cateInfo.Title,
 			Description: cateInfo.Description,
-			Visible:     cateInfo.Visible == "on"}
+			Visible:     cateInfo.Visible == "on",
+			User:&this.User}
 		if err = models.UpdateCategory(&category); err != nil {
 			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "EditCategory", err.Error()})
 			this.Data["updateMsg"] = "更新栏目失败，请重试"
@@ -191,4 +192,24 @@ func (this *CategoryController) DeleteCategory() {
 		this.Data["json"] = &JsonInfo
 		this.ServeJSON()
 	}
+}
+
+// @router category/:catId/articles [get]
+func (this *CategoryController) ShowArticlesOfCategory()  {
+	sId := this.Ctx.Input.Param(":catId")
+	catId, err := strconv.ParseInt(sId, 10, 64)
+	if err != nil {
+		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticlesOfCategory", err.Error()})
+		this.Ctx.Abort(500,"非法的栏目Id，请重新检查后执行操作")
+		return
+	}
+	category,articles, err := models.GetCategoryWithArticles(catId)
+	if err != nil {
+		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticlesOfCategory", err.Error()})
+		this.Ctx.Abort(500,"没有对应的栏目信息，请重新检查后执行操作")
+		return
+	}
+	this.Data["category"]=category
+	this.Data["articles"]=articles
+	this.TplName="category/category_article_list.html"
 }

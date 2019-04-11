@@ -15,8 +15,9 @@ type User struct {
 	Password string `orm:"size(32)" `
 	Email    string `orm:"size(32)"`
 	Role     int    `orm:"default(1)"`
-
-	//Phone    string `orm:"size(11)"`\
+	Article  []*Article `orm:"reverse(many)"`
+	Category	[]*Category	`orm:"reverse(many)"`
+	//Phone    string `orm:"size(11)"`
 	//Level    int    `orm:"size(2)"`
 	//Vip      bool
 	//Regestertime time.Time

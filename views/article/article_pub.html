@@ -9,7 +9,7 @@
                             <input type="hidden" name="artId" value="{{.article.Id}}" >
                             <label class="layui-form-label">文章标题</label>
                             <div class="layui-input-block">
-                                <input type="text" name="title" required lay-verify="required" value="{{.article.Title}}" placeholder="请输入文章标题"
+                                <input type="text" name="title" required lay-verify="required" value="{{ .article.Title}}" placeholder="请输入文章标题"
                                        autocomplete="off" class="layui-input">
                             </div>
                         </div>
@@ -28,21 +28,24 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="layui-form-item layui-form-text">
+                        <div id="contentDiv" class="layui-form-item layui-form-text">
                             {{/*<div class="layui-input-block">*/}}
-                                <textarea id="content" name="content" placeholder="请输入文章内容" class="layui-textarea">{{.article.Content}}</textarea>
+                                <textarea id="content" name="content" placeholder="请输入文章内容" class="layui-textarea">{{ .article.Content}}</textarea>
                             {{/*</div>*/}}
                         </div>
                         <div class="layui-form-item">
                             {{/*<div class="layui-input-block">*/}}
                                 <button class="layui-btn"  onclick="postSubmit(this);" lay-submit lay-filter="formDemo">保存</button>
-                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-                                 <button onclick="showArticle();" class="layui-btn pull-right">查看已有文章</button>
+                                <button type="button" onclick="postWithAjax(this)"  class="layui-btn layui-btn-primary">重置</button>
+                                 <button onclick="return showArticle();" class="layui-btn pull-right">查看已有文章</button>
+                                 <button onclick="return showCategory();" class="layui-btn pull-right">查看已有栏目</button>
+                                <button onclick="return goAddCategory();" class="layui-btn pull-right">新加栏目</button>
                             {{/*</div/>*/}}
                         </div>
                         <div class="layui-form-item">
                             {{/*<div class="layui-input-block">*/}}
-                                <p style="color: red">{{ .addMsg}}</p>
+                                <span style="color: red">{{ .addMsg}}</span>
+                                <span style="color: red">{{ .updateMsg}}</span>
                             {{/*</div>*/}}
                         </div>
                     </div>
@@ -52,9 +55,11 @@
     </div>
 </div>
 {{template "common/footer.html" .}}
+<script type="text/javascript" src="/static/js/common.js"></script>
 <script>
     //Demo
-    var $,layer;
+    var $,layer,content;
+    var layedit;
     layui.use(["layer",'form',"jquery"], function () {
         var form = layui.form;
         layer=layui.layer
@@ -69,9 +74,44 @@
     });
 
     layui.use('layedit', function(){
-        var layedit = layui.layedit;
-        layedit.build('content'); //建立编辑器
+        layedit = layui.layedit;
+        content=layedit.build('content'); //建立编辑器
     });
+
+    function postWithAjax(obj) {
+        // layer.alert("this")
+        // console.log($("#article").serialize())
+        postData=$("#article").serialize()
+        // console.log(postData)
+        // console.log("______________________")
+        // console.log(decodeURI(postData))
+        postData=decodeURI(postData)
+        // console.log("-------------------")
+        dataContent=layedit.getContent(content)
+        postData=postData.substr(0,postData.indexOf("&content="))
+        // postData.replace(,dataContent)
+        postData=postData+"&content="+dataContent
+        // console.log(postData)
+        // console.log("-------------")
+        // console.log(encodeURI(postData))
+        postData=encodeURI(postData)
+        // console.log(document.getElementsByTagName("textarea"))
+        //需要重新获取textarea的值
+        $.post(window.location.href,postData
+        ).success(function (data) {
+            console.log(data)
+            layer.alert(data["msg"],function (index) {
+                //三秒后跳转
+                setTimeout(function () {
+                    window.location.href=data["action"]
+                },3000)
+                layer.close(index)
+            })
+
+        }).error(function (data) {
+            layer.alert(data["msg"])
+        })
+    }
 
     // function postSubmit(obj){
     //     alert(layer)
@@ -97,7 +137,5 @@
     //
     // }
 
-    function showArticle() {
-        window.location.href="/article/show"
-    }
+
 </script>

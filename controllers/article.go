@@ -5,6 +5,7 @@ import (
 	"FlyBlog/utils/logutil"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type ArticleController struct {
@@ -12,9 +13,10 @@ type ArticleController struct {
 }
 
 type ArticleInfo struct {
-	Title    string `form:"title"`
-	Category int64  `form:"category"`
-	Content  string `form:"content"`
+	Id		int64	`form:"artId";json:"artId"`
+	Title    string `form:"title";json:"title"`
+	Category int64  `form:"category";json:"category"`
+	Content  string `form:"content";json:"content"`
 }
 
 //@router /article [get]
@@ -49,6 +51,7 @@ func (this *ArticleController) AddArticle() {
 		art.Title = article.Title
 		art.Category, _ = models.GetCategoryById(article.Category)
 		art.Content = article.Content
+		art.User=&this.User
 		if err := models.AddArticle(&art); err != nil {
 			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
 				"ToAddArticle", err.Error()})
@@ -91,25 +94,145 @@ func (this *ArticleController) ToUpdateArticle() {
 
 //@router /article/update/:id [post]
 func (this *ArticleController) UpdateArticle() {
+	if this.IsAjax(){
+		logutil.Info(logutil.LogInfo{logutil.CurrentFileName(),
+			"UpdateArticle", "使用的是ajax请求提交数据"})
+		//this.Data["updateMsg"] = "数据更新失败，请检查数据是否有问题，然后重试"
+		jsonInfo := JsonInfo{"数据更新成功,3秒后跳转到文章列表页面", "/article/show"}
+		art := ArticleInfo{}
+		if err := this.ParseForm(&art);err!=nil{
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+				"UpdateArticle", err.Error()})
+			jsonInfo.Msg="数据非法输入，请检查后重新更新"
+		}else{
+				artCategory, _ := models.GetCategoryById(art.Category)
+				article := models.NewArticle(art.Id, art.Title, art.Content, artCategory,&this.User)
+				if err := models.UpdateArticle(article); err != nil {
+					logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+						"UpdateArticle", err.Error()})
+					jsonInfo.Msg = "数据更新失败，请稍后重试"
+				} else {
+					jsonInfo.Msg = "数据更新成功,请继续选择其他操作"
+				}
+				//this.Data["article"] = article
+		}
+		this.Data["json"]=jsonInfo
+		this.ServeJSON()
+	}else{
 
-	this.TplName = "index.html"
+		handleCommonUpdate(this)
+	}
+}
+
+func handleCommonUpdate(this *ArticleController) {
+	art := ArticleInfo{}
+	if err := this.ParseForm(&art); err != nil {
+		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+			"UpdateArticle", err.Error()})
+		//this.Data["updateMsg"]="保存文章失败，请重试"
+		//this.Redirect("/500", 302)
+		this.Data["updateMsg"] = "数据更新失败，请检查数据是否有问题，然后重试"
+	}else {
+		artCategory, _ := models.GetCategoryById(art.Category)
+		article := models.NewArticle(art.Id, art.Title, art.Content, artCategory,&this.User)
+		if err := models.UpdateArticle(article); err != nil {
+				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+					"UpdateArticle", err.Error()})
+				this.Data["updateMsg"] = "数据更新失败，请稍后重试"
+			} else {
+				this.Data["updateMsg"] = "数据更新成功,请继续选择其他操作"
+			}
+		this.Data["article"] = article
+	}
+	//this.ToUpdateArticle()
+	this.TplName = "article/article_pub.html"
 }
 
 //@router /article/del/:id [get]
 func (this *ArticleController) DeleteArticle() {
-	this.TplName = "index.html"
+	//this.Ctx.WriteString("delete category")
+	if this.IsAjax() {
+		//fmt.Println("is ajax")
+		//定义一个map用来存放返回给客户端的json数据
+		var JsonInfo = JsonInfo{}
+		aId := this.Ctx.Input.Param(":id")
+		id, err := strconv.ParseInt(aId, 10, 64)
+		if err != nil {
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "DeleteArticle", err.Error()})
+			JsonInfo.Msg = "删除失败"
+			JsonInfo.Action = "/404"
+		} else {
+			if err := models.DeleteArticle(id); err != nil {
+				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "DeleteArticle", err.Error()})
+				JsonInfo.Msg = "删除失败"
+				JsonInfo.Action = "/404"
+			} else {
+				JsonInfo.Msg = "删除成功"
+				JsonInfo.Action = "/article/show"
+			}
+		}
+		//如果采用json传值，data中的键值只能使用json，不能为其他的键值
+		this.Data["json"] = &JsonInfo
+		this.ServeJSON()
+	}
 }
 
 //@router /article/show/?:id(\d+) [get]
 func (this *ArticleController) ShowArticle() {
-	article, err := models.GetArticlesWithPage(10, 1)
-	if err != nil {
-		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
-			"ShowArticle", err.Error()})
-		//this.Data["updateMsg"]="保存文章失败，请重试"
-		this.Redirect("/500", 302)
+	artIds := this.Ctx.Input.Param(":id")
+	if artIds != "" && len(strings.TrimSpace(artIds)) > 0 {
+		if artId, err := strconv.ParseInt(artIds, 10, 64); err != nil {
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticle", err.Error()})
+			this.Redirect("/", 302)
+			return
+		} else {
+			article, err := models.GetArticle(artId)
+			if err != nil {
+				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticle", err.Error()})
+				this.Redirect("/", 302)
+				return
+			}
+			this.Data["article"] = article
+			this.TplName = "article/article_list.html"
+		}
+	} else {
+		//按照分页显示数据,获取分页的数据
+		pageInfo := models.PageInfo{}
+		if err := this.ParseForm(&pageInfo); err != nil {
+			fmt.Println("get page info")
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+				"ShowArticle", err.Error()})
+			pageInfo.PageNow = 1
+			pageInfo.PageSize = 3
+		}
+		if pageInfo.PageNow == 0 {
+			pageInfo.PageNow = 1
+		}
+		if pageInfo.PageSize == 0 {
+			pageInfo.PageSize = 3
+		}
+		articles, err := models.GetArticlesWithPage(pageInfo.PageSize, pageInfo.PageNow)
+		total, _ := models.GetArticleCounts()
+		pageInfo.Total = int(total)
+		pageInfo.PageMax = pageInfo.Total / pageInfo.PageSize
+		if pageInfo.Total%pageInfo.PageSize != 0 {
+			pageInfo.PageMax++
+		}
+
+		if err != nil {
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowCategory", err.Error()})
+			this.Redirect("/", 302)
+			return
+		} else {
+			fmt.Println(pageInfo)
+			fmt.Println(len(articles))
+
+			this.Data["articles"] = articles
+			this.Data["pageMax"] = pageInfo.PageMax
+			this.Data["pageNow"] = pageInfo.PageNow
+			this.Data["pageSize"] = pageInfo.PageSize
+			this.Data["all"] = true
+			this.TplName = "article/article_list.html"
+		}
 	}
-	this.Data["articles"] = article
-	this.Data["all"] = true
-	this.TplName = "article/article_list.html"
 }
