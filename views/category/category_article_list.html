@@ -1,0 +1,81 @@
+{{template "common/header.html" .}}
+<div class="container-wrap">
+    <div class="container">
+        <div class="contar-wrap">
+            <h4 class="item-title">
+                <p><i class="layui-icon layui-icon-speaker"></i>公告：<span>当前页面为栏目文章列表页面，你可以编辑栏目信息，也可以浏览、编辑、删除文章</span></p>
+            </h4>
+                {{template "category/category_content.html" .category}}
+
+            {{if gt (.articles |len) 0 }}
+                <h4 class="item-title">
+                    <p><i class="layui-icon layui-icon-list"></i><span>所在栏目的文章列表</span></p>
+                </h4>
+                {{range .articles}}
+                    {{template "article/article_content.html" .}}
+                {{end}}
+            {{else}}
+                <h4 class="item-title">
+                    <p><i class="layui-icon layui-icon-list"></i><span>该栏目暂无文章，请<a style="color: #00F7DE;" href="/article">发布文章</a></span></p>
+                </h4>
+            {{end}}
+            <!--添加分页功能-->
+                {{/*<div class="item-box">*/}}
+                    {{/*<div class="item-btn">*/}}
+                        {{/*<button  onclick="getPage(this);" name="previous" class="layui-btn layui-btn-normal {{if le .pageNow 1}}layui-btn-disabled{{end}}" {{if le .pageNow 1}}disabled{{end}} >上一页</button>*/}}
+                        {{/*<button onclick="getPage(this);" name="next" class="layui-btn layui-btn-normal {{if ge .pageNow .pageMax }}layui-btn-disabled{{end}}" {{if ge .pageNow .pageMax }}disabled{{end}}>下一页</button>*/}}
+                    {{/*</div>*/}}
+                {{/*</div>*/}}
+        </div>
+
+    </div>
+</div>
+{{ template "common/footer.html"}}
+<script>
+    var layer,$;
+    //显示右下角的top块
+    showTopBlock()
+    function showDeleteConfirm(obj) {
+        // console.log(obj.getAttribute("href"))
+        layer.confirm('确定要删除该栏目吗?',
+            {icon: 3, title: '提示'},
+            function (index) {
+                //do something
+                deleteCategory(obj);
+                layer.close(index);
+            }, function (index) {
+                layer.close(index)
+            }
+        );
+        //eg2
+    }
+    function deleteCategory(obj) {
+        // window.location.href=obj.getAttribute("link")
+        $.get(
+            obj.getAttribute("link")
+        ).success(function (data) {
+            console.log(data)
+            layer.alert(data["msg"])
+            setTimeout(function () {
+                window.location.href=data["action"]
+            },3000)
+        }).error(function (data) {
+            layer.alert(data["msg"])
+        })
+    }
+
+    function getPage(obj) {
+        // layer.alert()
+        var select=obj.getAttribute("name")
+        var pageNow={{.pageNow}}
+        if (select==="previous"){
+            pageNow--
+        }else if(select==="next"){
+            pageNow++
+        }
+        window.location.href="/category/show/?pageSize={{.pageSize}}&pageNow="+pageNow
+
+    }
+
+
+</script>
