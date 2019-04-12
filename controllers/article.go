@@ -3,7 +3,9 @@ package controllers
 import (
 	"FlyBlog/models"
 	"FlyBlog/utils/logutil"
+	"bytes"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"strconv"
 	"strings"
 )
@@ -13,7 +15,7 @@ type ArticleController struct {
 }
 
 type ArticleInfo struct {
-	Id		int64	`form:"artId";json:"artId"`
+	Id       int64  `form:"artId";json:"artId"`
 	Title    string `form:"title";json:"title"`
 	Category int64  `form:"category";json:"category"`
 	Content  string `form:"content";json:"content"`
@@ -51,7 +53,9 @@ func (this *ArticleController) AddArticle() {
 		art.Title = article.Title
 		art.Category, _ = models.GetCategoryById(article.Category)
 		art.Content = article.Content
-		art.User=&this.User
+		art.User = &this.User
+		art.Summary, _ = getSummary(article.Content)
+		logutil.Info(logutil.LogInfo{logutil.CurrentFileName(), "AddArticle", "文章摘要：\n" + art.Summary})
 		if err := models.AddArticle(&art); err != nil {
 			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
 				"ToAddArticle", err.Error()})
@@ -94,31 +98,34 @@ func (this *ArticleController) ToUpdateArticle() {
 
 //@router /article/update/:id [post]
 func (this *ArticleController) UpdateArticle() {
-	if this.IsAjax(){
+	if this.IsAjax() {
 		logutil.Info(logutil.LogInfo{logutil.CurrentFileName(),
 			"UpdateArticle", "使用的是ajax请求提交数据"})
 		//this.Data["updateMsg"] = "数据更新失败，请检查数据是否有问题，然后重试"
 		jsonInfo := JsonInfo{"数据更新成功,3秒后跳转到文章列表页面", "/article/show"}
 		art := ArticleInfo{}
-		if err := this.ParseForm(&art);err!=nil{
+		if err := this.ParseForm(&art); err != nil {
 			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
 				"UpdateArticle", err.Error()})
-			jsonInfo.Msg="数据非法输入，请检查后重新更新"
-		}else{
-				artCategory, _ := models.GetCategoryById(art.Category)
-				article := models.NewArticle(art.Id, art.Title, art.Content, artCategory,&this.User)
-				if err := models.UpdateArticle(article); err != nil {
-					logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
-						"UpdateArticle", err.Error()})
-					jsonInfo.Msg = "数据更新失败，请稍后重试"
-				} else {
-					jsonInfo.Msg = "数据更新成功,请继续选择其他操作"
-				}
-				//this.Data["article"] = article
+			jsonInfo.Msg = "数据非法输入，请检查后重新更新"
+		} else {
+			artCategory, _ := models.GetCategoryById(art.Category)
+			summary, _ := getSummary(art.Content)
+			logutil.Info(logutil.LogInfo{logutil.CurrentFileName(), "UpdateArticle", "文章摘要：\n" + summary})
+			article := models.NewArticle(art.Id, art.Title, art.Content,
+				artCategory, &this.User, summary)
+			if err := models.UpdateArticle(article); err != nil {
+				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+					"UpdateArticle", err.Error()})
+				jsonInfo.Msg = "数据更新失败，请稍后重试"
+			} else {
+				jsonInfo.Msg = "数据更新成功,请继续选择其他操作"
+			}
+			//this.Data["article"] = article
 		}
-		this.Data["json"]=jsonInfo
+		this.Data["json"] = jsonInfo
 		this.ServeJSON()
-	}else{
+	} else {
 
 		handleCommonUpdate(this)
 	}
@@ -132,16 +139,21 @@ func handleCommonUpdate(this *ArticleController) {
 		//this.Data["updateMsg"]="保存文章失败，请重试"
 		//this.Redirect("/500", 302)
 		this.Data["updateMsg"] = "数据更新失败，请检查数据是否有问题，然后重试"
-	}else {
+	} else {
 		artCategory, _ := models.GetCategoryById(art.Category)
-		article := models.NewArticle(art.Id, art.Title, art.Content, artCategory,&this.User)
+		//截取文章摘要信息
+		summary, _ := getSummary(art.Content)
+
+		logutil.Info(logutil.LogInfo{logutil.CurrentFileName(), "handleCommonUpdate", "文章摘要：\n" + summary})
+		article := models.NewArticle(art.Id, art.Title, art.Content,
+			artCategory, &this.User, summary)
 		if err := models.UpdateArticle(article); err != nil {
-				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
-					"UpdateArticle", err.Error()})
-				this.Data["updateMsg"] = "数据更新失败，请稍后重试"
-			} else {
-				this.Data["updateMsg"] = "数据更新成功,请继续选择其他操作"
-			}
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
+				"UpdateArticle", err.Error()})
+			this.Data["updateMsg"] = "数据更新失败，请稍后重试"
+		} else {
+			this.Data["updateMsg"] = "数据更新成功,请继续选择其他操作"
+		}
 		this.Data["article"] = article
 	}
 	//this.ToUpdateArticle()
@@ -177,6 +189,17 @@ func (this *ArticleController) DeleteArticle() {
 	}
 }
 
+func buildArticleVOByArticleId(artId int64, userId int) (*HomeArticleVO, error) {
+	article, err := models.GetArticle(artId)
+	if err != nil {
+		return nil, err
+	}
+	artVO := HomeArticleVO{}
+	artVO.Article = article
+	artVO.CanOperation = canOperation(article.User.Id, userId)
+	return &artVO, nil
+}
+
 //@router /article/show/?:id(\d+) [get]
 func (this *ArticleController) ShowArticle() {
 	artIds := this.Ctx.Input.Param(":id")
@@ -186,14 +209,14 @@ func (this *ArticleController) ShowArticle() {
 			this.Redirect("/", 302)
 			return
 		} else {
-			article, err := models.GetArticle(artId)
+			artVO, err := buildArticleVOByArticleId(artId, this.User.Id)
 			if err != nil {
-				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticle", err.Error()})
+				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "buildArticleVOByArticleId", err.Error()})
 				this.Redirect("/", 302)
 				return
 			}
-			this.Data["article"] = article
-			this.TplName = "article/article_list.html"
+			this.Data["artVO"] = artVO
+			this.TplName = "article/article_detail.html"
 		}
 	} else {
 		//按照分页显示数据,获取分页的数据
@@ -211,8 +234,8 @@ func (this *ArticleController) ShowArticle() {
 		if pageInfo.PageSize == 0 {
 			pageInfo.PageSize = 3
 		}
-		articles, err := models.GetArticlesWithPage(pageInfo.PageSize, pageInfo.PageNow)
-		total, _ := models.GetArticleCounts()
+		articles, err := models.GetArticlesWithPage(pageInfo.PageSize, pageInfo.PageNow, &this.User)
+		total, _ := models.GetArticleCounts(&this.User)
 		pageInfo.Total = int(total)
 		pageInfo.PageMax = pageInfo.Total / pageInfo.PageSize
 		if pageInfo.Total%pageInfo.PageSize != 0 {
@@ -235,4 +258,20 @@ func (this *ArticleController) ShowArticle() {
 			this.TplName = "article/article_list.html"
 		}
 	}
+}
+
+//截取文章的摘要信息
+func getSummary(content string) (string, error) {
+	var buf bytes.Buffer
+	buf.Write([]byte(content))
+	doc, err := goquery.NewDocumentFromReader(&buf)
+	if err != nil {
+		return "", err
+	}
+	str := doc.Find("body").Text()
+	strRune := []rune(str)
+	if len(strRune) > 400 {
+		strRune = strRune[:400]
+	}
+	return string(strRune) + "...", nil
 }

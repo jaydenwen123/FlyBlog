@@ -1,14 +1,22 @@
 {{template "common/header.html" .}}
+<script type="text/javascript" src="/static/js/common.js"></script>
 <div class="container-wrap">
     <div class="container">
         <div class="contar-wrap">
-            <h4 class="item-title">
-                <p><i class="layui-icon layui-icon-speaker"></i>公告：<span>当前页面为栏目文章列表页面，你可以编辑栏目信息，也可以浏览、编辑、删除文章</span></p>
+            <h4 class="item-title"  style="background-color: #ADFFAD;padding: 0px; ">
+                <p style="height: auto;">
+
+                    <i style="" class="layui-icon layui-icon-speaker"> </i>提示：
+                    <span style="font-size: 16px;display: block;line-height: 10px;padding-bottom: 15px;">
+                        当前页面为栏目文章列表页面，你可以编辑栏目信息，也可以浏览、编辑、删除文章
+                    </span>
+                </p>
+
             </h4>
                 {{template "category/category_content.html" .category}}
 
             {{if gt (.articles |len) 0 }}
-                <h4 class="item-title">
+                <h4 class="item-title" style="background-color: #cccc77">
                     <p><i class="layui-icon layui-icon-list"></i><span>所在栏目的文章列表</span></p>
                 </h4>
                 {{range .articles}}
@@ -31,6 +39,7 @@
     </div>
 </div>
 {{ template "common/footer.html"}}
+
 <script>
     var layer,$;
     //显示右下角的top块
@@ -58,6 +67,7 @@
             layer.alert(data["msg"])
             setTimeout(function () {
                 window.location.href=data["action"]
+                // window.location.href=window.location.href
             },3000)
         }).error(function (data) {
             layer.alert(data["msg"])

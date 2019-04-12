@@ -1,0 +1,89 @@
+<div class="item">
+    <div class="item-box  layer-photos-demo1 layer-photos-demo">
+        <h3>
+            <a href="/show/{{.Article.Id}}">{{.Article.Title}}</a>
+            {{if .CanOperation}}
+                <button class="layui-btn layui-btn layui-btn-danger   pull-right"onclick="showDeleteArticleConfirm(this);" style="margin-right: 10px;">
+                    删除
+                </button>
+                <button class="layui-btn layui-btn pull-right" onclick="toEditArticle()" style="margin-right: 30px;">
+                    编辑
+                </button>
+            {{end}}
+        </h3>
+        <hr/>
+        <h5>
+            创建时间：<span>{{date .Article.PublishTime "Y-m-d H:i:s"}}</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            更新时间：<span>{{date .Article.UpdateTime "Y-m-d H:i:s"}}</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            所属栏目：
+            <a href="/category/{{.Article.Category.Id}}s">
+                        <span >
+                            {{.Article.Category.Title}}
+                        </span>
+            </a>
+        </h5>
+        <p >
+            {{str2html .Article.Content}}
+            {{/*{{  .Summary}}*/}}
+        </p >
+        <img src="/static/images/item.png" alt="">
+        <div class="count layui-clear">
+            <span class="pull-left">阅读 <em>100000+</em></span>
+            <span class="pull-right like"><i class="layui-icon layui-icon-praise"></i><em>999</em></span>
+        </div>
+    </div>
+
+</div>
+<script>
+    var layer,$;
+    layui.use(['layer', "jquery"], function () { //独立版的layer无需执行这一句
+        layer = layui.layer; //独立版的layer无需执行这一句
+        $ = layui.jquery;
+    })
+
+    function toEditArticle(){
+        layer.confirm('是否返回编辑页面编辑当前文章?',{icon: 3, title: '提示'},function (index) {
+            window.location.href="/article/update/{{.Article.Id}}"
+            layer.close(index)
+        },function (index) {
+            layer.close(index)
+        })
+    }
+
+    function showDeleteArticleConfirm(obj) {
+        // console.log(obj.getAttribute("href"))
+        layer.confirm('确定要删除该文章吗?',
+            {icon: 3, title: '提示'},
+            function (index) {
+                //do something
+                deleteArticle(obj, "");
+                layer.close(index);
+            }, function (index) {
+                layer.close(index)
+            }
+        );
+        //eg2
+    }
+
+    function deleteArticle(obj, link) {
+        // window.location.href=obj.getAttribute("link")
+        if (link === "") {
+            link = obj.getAttribute("link")
+        }
+        $.get(
+            // obj.getAttribute("link")
+            link
+        ).success(function (data) {
+            console.log(data)
+            layer.alert(data["msg"])
+            setTimeout(function () {
+                window.location.href = data["action"]
+            }, 1000)
+        }).error(function (data) {
+            layer.alert(data["msg"])
+        })
+    }
+</script>
+

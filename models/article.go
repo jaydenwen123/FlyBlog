@@ -9,20 +9,19 @@ type Article struct {
 	Id          int64
 	Title       string    `orm:"size(256)"`
 	Content     string    `orm:"type(text)"`
+	Summary     string    `orm:"type(text)"`
 	PublishTime time.Time `orm:"auto_now_add;type(datetime)"`
 	UpdateTime  time.Time `orm:"auto_now;type(datetime)"`
 	Category    *Category `orm:"rel(fk);description:(这个是文章的栏目分类)" ` //设置一对多关系
-	User 	*User	`orm:"rel(fk)"`
+	User        *User     `orm:"rel(fk)"`
 }
 
-func NewArticle(id int64, title string, content string, category *Category,user *User) *Article {
-	return &Article{Id: id, Title: title, Content: content, Category: category,User:user}
+func NewArticle(id int64, title string, content string, category *Category, user *User, summary string) *Article {
+	return &Article{Id: id, Title: title, Content: content, Category: category, User: user, Summary: summary}
 }
-func NewArticle2(title string, content string, category *Category,user *User) *Article {
-	return &Article{ Title: title, Content: content, Category: category,User:user}
+func NewArticle2(title string, content string, category *Category, user *User) *Article {
+	return &Article{Title: title, Content: content, Category: category, User: user}
 }
-
-
 
 const TABLE_ARTICLE = "article"
 
@@ -62,12 +61,22 @@ func GetArticlesByCategory(cat_id int64) ([]*Article, error) {
 }
 
 //一对多和多对一、以及一对一关联时，需要使用RelatedSet方法来衔接
-func GetArticlesWithPage(pageSize, pageNow int) ([]*Article, error) {
+func GetArticlesWithPage(pageSize, pageNow int, user *User) ([]*Article, error) {
 	var articles []*Article
-	_, err := db.QueryTable(TABLE_ARTICLE).Limit(pageSize, (pageNow - 1)).RelatedSel().OrderBy("-update_time").All(&articles)
+	var err error
+	if user != nil {
+		_, err = db.QueryTable(TABLE_ARTICLE).Filter("user_id", user.Id).Limit(pageSize, (pageNow - 1)).RelatedSel().OrderBy("-update_time").All(&articles)
+	} else {
+		_, err = db.QueryTable(TABLE_ARTICLE).Limit(pageSize, (pageNow - 1)).RelatedSel().OrderBy("-update_time").All(&articles)
+	}
 	return articles, err
 }
 
-func GetArticleCounts() (int64, error) {
-	return db.QueryTable("article").Count()
+func GetArticleCounts(user *User) (int64, error) {
+	if user != nil {
+		return db.QueryTable("article").Filter("user_id", user.Id).Count()
+	} else {
+		return db.QueryTable("article").Count()
+
+	}
 }

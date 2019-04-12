@@ -17,6 +17,11 @@ type BaseController struct {
 	UserInfo
 }
 
+type HomeArticleVO struct {
+	Article      *models.Article
+	CanOperation bool
+}
+
 func (this *BaseController) Prepare() {
 	curUrl := this.Ctx.Input.URI()
 	this.Data["path"] = curUrl
@@ -24,7 +29,8 @@ func (this *BaseController) Prepare() {
 	this.CheckLogin()
 	if !this.Login && (strings.Contains(curUrl, "category") ||
 		strings.Contains(curUrl, "article") ||
-		strings.Contains(curUrl, "message")) {
+		strings.Contains(curUrl, "message") ||
+		strings.Contains(curUrl, "comment")) {
 		this.Redirect("/login", 302)
 		return
 	}

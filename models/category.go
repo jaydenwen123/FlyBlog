@@ -14,7 +14,7 @@ type Category struct {
 	PublishTime time.Time  `orm:"auto_now_add;type(datetime)"`
 	UpdateTime  time.Time  `orm:"auto_now;type(datetime)"`
 	Articles    []*Article `orm:"reverse(many)"` // 设置一对多的反向关系
-	User	*User	`orm:"rel(fk)"`
+	User        *User      `orm:"rel(fk)"`
 }
 
 func NewCategory(title string, description string, visible bool, user *User) *Category {
@@ -56,21 +56,21 @@ func GetAllCategory() ([]*Category, error) {
 	return categorys, err
 }
 
-func GetCategorysByPage(pageSize, pageNow int) ([]*Category, error) {
+func GetCategorysByPage(pageSize, pageNow int, user User) ([]*Category, error) {
 	var categorys []*Category
-	_, err := db.QueryTable("category").Limit(pageSize,
+	_, err := db.QueryTable("category").Filter("user_id", user.Id).Limit(pageSize,
 		pageSize*(pageNow-1)).OrderBy("-publish_time").All(&categorys)
 	return categorys, err
 }
 
-func GetCategoryCounts() (int64, error) {
-	return db.QueryTable("category").Count()
+func GetCategoryCounts(user User) (int64, error) {
+	return db.QueryTable("category").Filter("user_id", user.Id).Count()
 }
 
-func GetCategoryWithArticles(catId int64) (*Category,[]*Article,error){
-	category :=Category{}
-	articles :=[] *Article{}
+func GetCategoryWithArticles(catId int64) (*Category, []*Article, error) {
+	category := Category{}
+	articles := []*Article{}
 	err := db.QueryTable("category").Filter("id", catId).RelatedSel().One(&category)
-	_,err=db.QueryTable("article").Filter("category_id",catId).RelatedSel().OrderBy("-publish_time").All(&articles)
-	return &category,articles,err
+	_, err = db.QueryTable("article").Filter("category_id", catId).RelatedSel().OrderBy("-publish_time").All(&articles)
+	return &category, articles, err
 }

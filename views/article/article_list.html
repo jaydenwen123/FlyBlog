@@ -17,12 +17,13 @@
                     </div>
                 </div>
             {{else}}
-                {{template "article/article_content.html" .article .user}}
+                {{template "article/article_content.html" .article }}
             {{end}}
         </div>
     </div>
 </div>
 {{ template "common/footer.html"}}
+<script type="text/javascript" src="/static/js/common.js"></script>
 <script>
     var layer,$;
     layui.use(['layer', "jquery","util"], function () { //独立版的layer无需执行这一句
@@ -62,14 +63,13 @@
     function getData(obj) {
         layer.alert("change"+obj)
     }
-
     function showDeleteArticleConfirm(obj) {
         // console.log(obj.getAttribute("href"))
         layer.confirm('确定要删除该文章吗?',
             {icon: 3, title: '提示'},
             function (index) {
                 //do something
-                deleteArticle(obj,"");
+                deleteArticle(obj, "");
                 layer.close(index);
             }, function (index) {
                 layer.close(index)
@@ -77,10 +77,11 @@
         );
         //eg2
     }
-    function deleteArticle(obj,link) {
+
+    function deleteArticle(obj, link) {
         // window.location.href=obj.getAttribute("link")
-        if(link===""){
-            link=obj.getAttribute("link")
+        if (link === "") {
+            link = obj.getAttribute("link")
         }
         $.get(
             // obj.getAttribute("link")
@@ -89,12 +90,13 @@
             console.log(data)
             layer.alert(data["msg"])
             setTimeout(function () {
-                window.location.href=data["action"]
-            },1000)
+                window.location.href = data["action"]
+            }, 1000)
         }).error(function (data) {
             layer.alert(data["msg"])
         })
     }
+
 
     function getPage(obj) {
         // layer.alert()

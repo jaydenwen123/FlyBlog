@@ -1,0 +1,48 @@
+{{template "common/header.html" .}}
+<div class="container-wrap">
+    <div class="container container-message container-details container-comment">
+        <div class="contar-wrap">
+            {{template "article/article_detail_tpl.html" .artVO}}
+            <form class="layui-form" method="post" action="">
+                <div class="layui-form-item layui-form-text">
+                    <input type="hidden" value="{{.artVO.Article.Id}}" name="artId" >
+                    <input type="hidden" value="{{.user.Id}}" name="comUserId">
+                    <textarea name="commentContent" class="layui-textarea" style="resize:none" placeholder="写点什么啊"></textarea>
+                </div>
+                <div class="layui-form-item">
+                    <button  lay-submit  class="layui-btn pull-right">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{ template "common/footer.html"}}
+<script>
+    layui.use(["util"], function () { //独立版的layer无需执行这一句
+        var util=layui.util
+        //执行
+        util.fixbar({
+            {{if .artVO.CanOperation}}
+            bar1: "&#xe642;",//编辑
+            bar2:"&#xe640;",//删除
+            {{end}}
+            top:true,
+            css:{right: 250, bottom: 100}
+            ,click: function(type){
+                console.log(type);
+                if(type === 'bar1'){
+                    toEditArticle()
+                }
+                if(type === 'bar2'){
+                    layer.confirm('是否删除当前文章?',{icon: 3, title: '提示'},function (index) {
+                        link="/article/del/{{.artVO.Article.Id}}"
+                        deleteArticle("",link)
+                        layer.close(index)
+                    },function (index) {
+                        layer.close(index)
+                    })
+                }
+            }
+        });
+    });
+</script>

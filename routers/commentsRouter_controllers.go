@@ -142,6 +142,24 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["FlyBlog/controllers:CommentController"] = append(beego.GlobalControllerRouter["FlyBlog/controllers:CommentController"],
+		beego.ControllerComments{
+			Method:           "ToComment",
+			Router:           `/comment`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["FlyBlog/controllers:CommentController"] = append(beego.GlobalControllerRouter["FlyBlog/controllers:CommentController"],
+		beego.ControllerComments{
+			Method:           "AddComment",
+			Router:           `/comment`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["FlyBlog/controllers:LoginController"] = append(beego.GlobalControllerRouter["FlyBlog/controllers:LoginController"],
 		beego.ControllerComments{
 			Method:           "ToLogin",

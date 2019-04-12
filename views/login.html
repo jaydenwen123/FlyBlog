@@ -5,15 +5,17 @@
             {{if .isLogin}}
                 <h4 class="item-title">
                     <p><i  class="layui-icon layui-icon-speaker">
-
                         </i>公告：
-                        <span>
                             {{if eq .user.Role 0}}
-                                您好管理员，您已登录,您现在可以发表博客文章
+                                <span >
+                                    {{/*style="display: block"*/}}
+                                    您好管理员，您已登录,现在可以发表博客文章
+                                </span>
                             {{else}}
-                                您好，您是普通用户，您已登录,只能浏览本网站博客
+                                 <span>
+                                     您好，您是普通用户，您已登录,只能浏览本网站博客
+                                 </span>
                             {{end}}
-                        </span>
                         {{/*<a style="color: #00F7DE;margin-left: 10px;" href="/logout">退出系统</a>*/}}
                         {{/*<a style="color: #00F7DE;" href="/setting">&nbsp;&nbsp;个人信息</a>*/}}
                         {{/*<a style="color: #00F7DE;" href="/setting">&nbsp;&nbsp;更换博客背景</a>*/}}
