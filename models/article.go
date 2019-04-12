@@ -10,6 +10,8 @@ type Article struct {
 	Title       string    `orm:"size(256)"`
 	Content     string    `orm:"type(text)"`
 	Summary     string    `orm:"type(text)"`
+	ReadCount	int64 //阅读数
+	LikeCount	int64 //点赞数
 	PublishTime time.Time `orm:"auto_now_add;type(datetime)"`
 	UpdateTime  time.Time `orm:"auto_now;type(datetime)"`
 	Category    *Category `orm:"rel(fk);description:(这个是文章的栏目分类)" ` //设置一对多关系
@@ -23,7 +25,7 @@ func NewArticle2(title string, content string, category *Category, user *User) *
 	return &Article{Title: title, Content: content, Category: category, User: user}
 }
 
-const TABLE_ARTICLE = "article"
+
 
 func init() {
 

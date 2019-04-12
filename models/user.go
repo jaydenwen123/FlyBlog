@@ -17,6 +17,7 @@ type User struct {
 	Role     int    `orm:"default(1)"`
 	Article  []*Article `orm:"reverse(many)"`
 	Category	[]*Category	`orm:"reverse(many)"`
+	Comment		[]*Comment	`orm:"reverse(many)"`
 	//Phone    string `orm:"size(11)"`
 	//Level    int    `orm:"size(2)"`
 	//Vip      bool
@@ -96,8 +97,8 @@ func GetUsers() []User {
 }
 
 func GetUser(id int) *User {
-	user := User{Id: id}
-	if err := db.Read(&user); err != nil {
+	user := User{}
+	if err := db.QueryTable(TABLE_USER).Filter("id",id).RelatedSel().One(&user); err != nil {
 		logs.Error("there is occured the error when get user-->", err.Error())
 		return nil
 	}

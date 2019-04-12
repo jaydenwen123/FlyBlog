@@ -3,14 +3,15 @@
     <div class="container container-message container-details container-comment">
         <div class="contar-wrap">
             {{template "article/article_detail_tpl.html" .artVO}}
-            <form class="layui-form" method="post" action="">
+            <form id="comment" class="layui-form" method="post" action="">
                 <div class="layui-form-item layui-form-text">
                     <input type="hidden" value="{{.artVO.Article.Id}}" name="artId" >
                     <input type="hidden" value="{{.user.Id}}" name="comUserId">
                     <textarea name="commentContent" class="layui-textarea" style="resize:none" placeholder="写点什么啊"></textarea>
                 </div>
                 <div class="layui-form-item">
-                    <button  lay-submit  class="layui-btn pull-right">确定</button>
+                    <button type="button" onclick="submitCommit()"  class="layui-btn pull-right">提交</button>
+                    <button type="button" onclick="returnArticleDetail()"  style="margin-right: 30px;" class="layui-btn pull-right">返回</button>
                 </div>
             </form>
         </div>
@@ -18,7 +19,10 @@
 </div>
 {{ template "common/footer.html"}}
 <script>
-    layui.use(["util"], function () { //独立版的layer无需执行这一句
+    var $,layer
+    layui.use(["layer","jquery","util"], function () { //独立版的layer无需执行这一句
+        $=layui.jquery
+        layer=layui.layer
         var util=layui.util
         //执行
         util.fixbar({
@@ -45,4 +49,41 @@
             }
         });
     });
+    var lastComment=""
+    function submitCommit() {
+        var content=$("textarea").val()
+        if(content.trim().length==0 || content==="")
+        {
+            layer.alert("没有评论的内容，请输入内容后然后在点击确定")
+            return
+        }
+        if(content===lastComment){
+            layer.alert("你已经评论过了文章，请不要重复提交")
+            return
+        }
+        $.post(
+            window.location.href,
+            $("#comment").serialize()
+        ).success(function (data) {
+            // console.log(data)
+            lastComment=content
+            layer.confirm(data["msg"], {icon: 3, title:'提示'},function (index) {
+                //三秒后跳转
+                setTimeout(function () {
+                    window.location.href=data["action"]
+                },1000)
+                layer.close(index)
+            },function (index) {
+                layer.close(index)
+            })
+
+        }).error(function (data) {
+            layer.alert(data["msg"])
+        })
+    }
+
+    function returnArticleDetail() {
+        {{/*window.location.href="/article/show/"+{{.artVO.Article.Id}}*/}}
+        history.go(-1)
+    }
 </script>

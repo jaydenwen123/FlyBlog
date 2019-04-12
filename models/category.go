@@ -50,9 +50,9 @@ func GetCategoryById(catId int64) (*Category, error) {
 	return &category, err
 }
 
-func GetAllCategory() ([]*Category, error) {
+func GetAllCategory(userId int) ([]*Category, error) {
 	var categorys []*Category
-	_, err := db.QueryTable("category").OrderBy("-publish_time").All(&categorys)
+	_, err := db.QueryTable("category").Filter("user_id",userId).OrderBy("-publish_time").All(&categorys)
 	return categorys, err
 }
 

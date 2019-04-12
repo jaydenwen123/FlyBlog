@@ -1,0 +1,14 @@
+<div class="info-item">
+    <a href="/user/{{.CommentUser.Id}}">
+        <img class="info-img" src="/static/images/info-img.png" alt="">
+    </a>
+    <div class="info-text">
+        <p class="title count">
+            <a href="/user/{{.CommentUser.Id}}"><span class="name">{{.CommentUser.Username}}</span></a>
+            <span class="info-img like"><i class="layui-icon layui-icon-praise"></i>5.8万</span>
+        </p>
+        <p class="info-intr">
+            {{.Content}}
+        </p>
+    </div>
+</div>

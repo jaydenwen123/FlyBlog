@@ -24,7 +24,7 @@ type ArticleInfo struct {
 //@router /article [get]
 func (this *ArticleController) ToAddArticle() {
 	//获取所有的文章栏目，数据初始化文章栏目
-	categories, err := models.GetAllCategory()
+	categories, err := models.GetAllCategory(this.User.Id)
 	if err != nil {
 		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
 			"ToAddArticle", err.Error()})
@@ -38,10 +38,8 @@ func (this *ArticleController) ToAddArticle() {
 func (this *ArticleController) AddArticle() {
 	//采用ajkx提交数据
 	article := ArticleInfo{}
-	fmt.Println(this.IsAjax())
-	//if !this.IsAjax() {
-	//	this.Abort("500")
-	//}
+	//fmt.Println(this.IsAjax())
+
 	jsonInfo := JsonInfo{}
 	if err := this.ParseForm(&article); err != nil {
 		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(),
@@ -66,11 +64,14 @@ func (this *ArticleController) AddArticle() {
 			jsonInfo.Msg = "保存文章成功，请继续添加文章"
 		}
 	}
-	//jsonInfo.Action="/"
-	//this.Data["json"]=&jsonInfo
-	//this.ServeJSON()
+	if this.IsAjax(){
+		jsonInfo.Action="/article/show"
+		this.Data["json"]=&jsonInfo
+		this.ServeJSON()
+	}else{
 	this.Data["addMsg"] = jsonInfo.Msg
 	this.ToAddArticle()
+	}
 }
 
 //@router /article/update/:id [get]
@@ -204,20 +205,7 @@ func buildArticleVOByArticleId(artId int64, userId int) (*HomeArticleVO, error) 
 func (this *ArticleController) ShowArticle() {
 	artIds := this.Ctx.Input.Param(":id")
 	if artIds != "" && len(strings.TrimSpace(artIds)) > 0 {
-		if artId, err := strconv.ParseInt(artIds, 10, 64); err != nil {
-			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticle", err.Error()})
-			this.Redirect("/", 302)
-			return
-		} else {
-			artVO, err := buildArticleVOByArticleId(artId, this.User.Id)
-			if err != nil {
-				logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "buildArticleVOByArticleId", err.Error()})
-				this.Redirect("/", 302)
-				return
-			}
-			this.Data["artVO"] = artVO
-			this.TplName = "article/article_detail.html"
-		}
+		this.ShowOneArticle(artIds)
 	} else {
 		//按照分页显示数据,获取分页的数据
 		pageInfo := models.PageInfo{}
@@ -257,6 +245,29 @@ func (this *ArticleController) ShowArticle() {
 			this.Data["all"] = true
 			this.TplName = "article/article_list.html"
 		}
+	}
+}
+//展现一篇文章，同时取出文章的评论
+func (this *ArticleController) ShowOneArticle(artIds string) {
+	if artId, err := strconv.ParseInt(artIds, 10, 64); err != nil {
+		logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowArticle", err.Error()})
+		this.Redirect("/", 302)
+	} else {
+		//组装文章和用户对文章权限的数据
+		artVO, err := buildArticleVOByArticleId(artId, this.User.Id)
+		if err != nil {
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "buildArticleVOByArticleId", err.Error()})
+			this.Redirect("/", 302)
+		}
+		//按照点赞数取评论信息
+		comments,err:=models.GetComments(artId)
+		if err != nil {
+			logutil.Error(logutil.LogInfo{logutil.CurrentFileName(), "ShowOneArticle", err.Error()})
+			this.Redirect("/", 302)
+		}
+		this.Data["artVO"] = artVO
+		this.Data["comments"]=comments
+		this.TplName = "article/article_detail.html"
 	}
 }
 

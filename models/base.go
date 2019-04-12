@@ -12,6 +12,13 @@ type PageInfo struct {
 	PageMax  int `form:"pageMax"`
 }
 
+const (
+	TABLE_ARTICLE="article"
+	TABLE_COMMENT="comment"
+	TABLE_CATEGORY="category"
+	TABLE_USER="user"
+	)
+
 var (
 	db orm.Ormer
 )
@@ -25,7 +32,7 @@ func init() {
 		logs.Error("orm.RegisterDataBase error:", err.Error())
 	}
 	//2.register model
-	orm.RegisterModel(new(User), new(Article), new(Category))
+	orm.RegisterModel(new(User), new(Article), new(Category),new(Comment))
 
 	//3.create table
 	err = orm.RunSyncdb("default", false, true)

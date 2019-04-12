@@ -1,7 +1,7 @@
 <div class="item">
     <div class="item-box  layer-photos-demo1 layer-photos-demo">
         <h3>
-            <a href="/show/{{.Article.Id}}">{{.Article.Title}}</a>
+            <a href="javascript:void(0);">{{.Article.Title}}</a>
             {{if .CanOperation}}
                 <button class="layui-btn layui-btn layui-btn-danger   pull-right"onclick="showDeleteArticleConfirm(this);" style="margin-right: 10px;">
                     删除
@@ -10,6 +10,9 @@
                     编辑
                 </button>
             {{end}}
+            <button class="layui-btn layui-btn pull-right" onclick="javascript:history.go(-1);" style="margin-right: 30px;">
+                返回
+            </button>
         </h3>
         <hr/>
         <h5>

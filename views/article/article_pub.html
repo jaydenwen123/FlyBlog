@@ -35,11 +35,13 @@
                         </div>
                         <div class="layui-form-item">
                             {{/*<div class="layui-input-block">*/}}
-                                <button class="layui-btn"  onclick="postSubmit(this);" lay-submit lay-filter="formDemo">保存</button>
-                                <button type="button" onclick="postWithAjax(this)"  class="layui-btn layui-btn-primary">重置</button>
-                                 <button onclick="return showArticle();" class="layui-btn pull-right">查看已有文章</button>
-                                 <button onclick="return showCategory();" class="layui-btn pull-right">查看已有栏目</button>
-                                <button onclick="return goAddCategory();" class="layui-btn pull-right">新加栏目</button>
+                                <button class="layui-btn"  lay-submit lay-filter="formDemo">保存</button>
+                                <button type="button" onclick="postWithAjax(this)"  class="layui-btn ">Ajax保存</button>
+                                <button type="reset"   class="layui-btn layui-btn-primary">重置</button>
+                                 <button onclick="javascript:history.go(-1);" class="layui-btn pull-right">返回</button>
+                                 <button onclick="return showArticle();" class="layui-btn pull-right">文章列表</button>
+                                 <button onclick="return showCategory();" class="layui-btn pull-right">栏目列表</button>
+                                <button onclick="return goAddCategory();" class="layui-btn pull-right">新增栏目</button>
                             {{/*</div/>*/}}
                         </div>
                         <div class="layui-form-item">
