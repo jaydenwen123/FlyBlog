@@ -50,10 +50,15 @@
         });
     });
     var lastComment=""
+    // $=layui.jquery
     function submitCommit() {
-        var content=$("textarea").val()
+        // console.log($("textarea"))
+        var formData=$("#comment").serialize()
+        var content=formData.substring(formData.lastIndexOf("=")+1)
+        console.log(content)
         if(content.trim().length==0 || content==="")
         {
+
             layer.alert("没有评论的内容，请输入内容后然后在点击确定")
             return
         }
@@ -63,7 +68,7 @@
         }
         $.post(
             window.location.href,
-            $("#comment").serialize()
+            formData
         ).success(function (data) {
             // console.log(data)
             lastComment=content
