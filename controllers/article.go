@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"FlyBlog/models"
-	"FlyBlog/utils/logutil"
 	"bytes"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/jaydenwen123/FlyBlog/models"
+	"github.com/jaydenwen123/FlyBlog/utils/logutil"
 	"strconv"
 	"strings"
 )

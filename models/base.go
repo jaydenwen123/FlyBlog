@@ -43,3 +43,12 @@ func init() {
 	db = orm.NewOrm()
 
 }
+//use mysql;
+//update user set host='%' ,password=password('123345')   where user='root';
+//
+///*
+//   ##[mysql 5.7 的修改语句, 5.7 没有 password 字段了，变成了 authentication_string ]*/
+//update user set host='%' ,authentication_string=password('123345')  where user='root';
+//
+//grant  all privileges on *.*  to  root@'%'  identified  by '123456' with  grant  option;
+//flush privileges;

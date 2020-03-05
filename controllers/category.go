@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"FlyBlog/models"
-	"FlyBlog/utils/logutil"
 	"fmt"
+	"github.com/jaydenwen123/FlyBlog/models"
+	"github.com/jaydenwen123/FlyBlog/utils/logutil"
 	"strconv"
 	"strings"
 )

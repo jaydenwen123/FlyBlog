@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"FlyBlog/models"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/jaydenwen123/FlyBlog/models"
 	"strings"
 )
 

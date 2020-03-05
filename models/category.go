@@ -1,7 +1,7 @@
 package models
 
 import (
-	"FlyBlog/utils/logutil"
+	"github.com/jaydenwen123/FlyBlog/utils/logutil"
 	"time"
 )
 

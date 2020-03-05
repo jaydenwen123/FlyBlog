@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"FlyBlog/controllers"
 	"github.com/astaxie/beego"
+	"github.com/jaydenwen123/FlyBlog/controllers"
 )
 
 func init() {

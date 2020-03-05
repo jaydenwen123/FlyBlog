@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "FlyBlog/routers"
+	_ "github.com/jaydenwen123/FlyBlog/routers"
 	"github.com/astaxie/beego"
 )
 
